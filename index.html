@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kenangan - Arlie</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+
     <style>
         :root {
             --purple-light: #d8b4fe;
@@ -24,19 +27,30 @@
             font-family: 'Cormorant Garamond', serif;
         }
 
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: #0f0a1a; }
         ::-webkit-scrollbar-thumb { background: #9333ea; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #d8b4fe; }
 
-        .font-brand { font-family: 'Cinzel', serif; }
+        .font-brand {
+            font-family: 'Cinzel', serif;
+        }
 
         .glass {
             background: rgba(30, 10, 50, 0.4);
             backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
             border: 1px solid rgba(216, 180, 254, 0.1);
             box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            animation: glassPulse 4s infinite alternate ease-in-out;
         }
 
+        @keyframes glassPulse {
+            0% { box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 0 0px rgba(216, 180, 254, 0); }
+            100% { box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5), inset 0 0 15px rgba(216, 180, 254, 0.15); }
+        }
+
+        /* Loading Animations */
         #loader-wrapper {
             position: fixed;
             inset: 0;
@@ -46,12 +60,12 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            transition: opacity 1s ease-out, visibility 1s;
+            transition: opacity 1.5s ease-out, visibility 1.5s;
         }
 
         .loader-ring {
-            width: 140px;
-            height: 140px;
+            width: 150px;
+            height: 150px;
             border-radius: 50%;
             position: relative;
         }
@@ -60,94 +74,250 @@
             content: '';
             position: absolute;
             border-radius: 50%;
-            border: 4px solid transparent;
+            border: 3px solid transparent;
         }
 
         .loader-ring::before {
             inset: 0;
             border-top-color: var(--purple-light);
+            border-bottom-color: var(--purple-main);
             animation: spin 2s linear infinite;
         }
 
         .loader-ring::after {
-            inset: 12px;
-            border-bottom-color: var(--purple-main);
+            inset: 15px;
+            border-left-color: var(--purple-light);
+            border-right-color: var(--purple-main);
             animation: spinReverse 1.5s linear infinite;
         }
 
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-        @keyframes spinReverse { 100% { transform: rotate(-360deg); } }
+        .loader-core {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 50px;
+            height: 50px;
+            background: var(--purple-main);
+            border-radius: 50%;
+            box-shadow: 0 0 30px var(--purple-glow), 0 0 60px var(--purple-glow);
+            animation: pulse 2s ease-in-out infinite;
+        }
 
+        .loader-text {
+            margin-top: 40px;
+            font-size: 1.2rem;
+            letter-spacing: 0.2em;
+            color: var(--purple-light);
+            animation: breathe 2s ease-in-out infinite;
+        }
+
+        /* Background */
         .bg-character {
             position: fixed;
-            inset: -10%;
+            inset: -5%;
             z-index: -2;
             background-image: url('image_f7b9e4.jpg');
+            background-color: #1a0b2e;
             background-size: cover;
             background-position: center;
-            filter: brightness(0.5) contrast(1.1);
-            transition: transform 0.2s ease-out;
+            transition: transform 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            filter: brightness(0.65) contrast(1.2) hue-rotate(5deg) saturate(1.3);
         }
 
         .bg-overlay {
             position: fixed;
             inset: 0;
             z-index: -1;
-            background: radial-gradient(circle at center, transparent 0%, #0a0118 95%);
+            background: radial-gradient(circle at center, transparent 0%, #0a0118 100%);
         }
 
+        #particle-canvas {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Page View System */
         .page-view {
             display: none;
             width: 100%;
             min-height: 100vh;
             flex-direction: column;
+            justify-content: center;
+            align-items: center;
             padding: 100px 20px 40px 20px;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
         }
 
-        .active-view { display: flex; animation: fadeIn 0.8s ease-out; }
+        .page-view.active-view {
+            display: flex;
+            opacity: 1;
+            animation: pageFadeIn 0.8s ease-out forwards;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
-        .reveal-text { opacity: 0; transform: translateY(20px); transition: 1.5s cubic-bezier(0.22, 1, 0.36, 1); }
-        .reveal-text.active { opacity: 1; transform: translateY(0); }
+        /* Core Animations */
+        .reveal-text {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 1.5s cubic-bezier(0.5, 0, 0, 1);
+        }
+
+        .reveal-text.active {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .text-glow { text-shadow: 0 0 15px rgba(216, 180, 254, 0.4); }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spinReverse { 0% { transform: rotate(0deg); } 100% { transform: rotate(-360deg); } }
+        @keyframes pulse {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+            50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+        }
+        @keyframes breathe {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; text-shadow: 0 0 10px var(--purple-glow); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .floating-element { animation: float 6s ease-in-out infinite; }
+
+        /* Kilatan Listrik pada Folder */
+        @keyframes electric-flash {
+            0%, 88%, 100% { box-shadow: 0 0 0 transparent; border: 1px solid rgba(216, 180, 254, 0.1); }
+            90%, 94% { box-shadow: 0 0 30px #c084fc, inset 0 0 30px #c084fc; border: 1px solid #c084fc; }
+            92%, 96% { box-shadow: 0 0 10px #e9d5ff, inset 0 0 10px #e9d5ff; border: 1px solid #e9d5ff; }
+            98% { box-shadow: 0 0 50px #9333ea, inset 0 0 50px #9333ea; border: 1px solid #9333ea; }
+        }
 
         .folder-lightning {
+            animation: electric-flash 4s infinite;
             position: relative;
-            overflow: hidden;
-            transition: 0.4s;
-            cursor: pointer;
-            border: 1px solid rgba(147, 51, 234, 0.3);
         }
 
-        .folder-lightning:hover { 
-            transform: translateY(-5px);
-            box-shadow: 0 0 25px var(--purple-main);
-            border-color: var(--purple-light);
-        }
-
-        .folder-lightning::after {
+        .folder-lightning::before {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(60deg, transparent 40%, rgba(216, 180, 254, 0.5) 50%, transparent 60%);
-            transform: translateX(-100%);
-            animation: lightning 4s infinite;
+            border-radius: inherit;
+            background: linear-gradient(45deg, transparent 40%, rgba(216, 180, 254, 0.4) 50%, transparent 60%);
+            background-size: 200% 200%;
+            animation: shimmer 4s infinite linear;
+            pointer-events: none;
+            opacity: 0;
         }
 
-        @keyframes lightning { 
-            0% { transform: translateX(-100%); } 
-            15% { transform: translateX(100%); } 
-            100% { transform: translateX(100%); } 
+        @keyframes shimmer {
+            0%, 89% { opacity: 0; }
+            90% { opacity: 1; background-position: -100% -100%; }
+            100% { opacity: 1; background-position: 200% 200%; }
         }
 
+        /* Bingkai Imut dan Lucu */
+        .cute-frame {
+            border: 4px solid rgba(216, 180, 254, 0.6);
+            border-radius: 20px;
+            padding: 8px;
+            background: rgba(45, 20, 80, 0.4);
+            position: relative;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            aspect-ratio: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .cute-frame:hover {
+            transform: scale(1.05) rotate(-2deg);
+            border-color: #f472b6;
+            box-shadow: 0 15px 35px rgba(244, 114, 182, 0.4);
+        }
+
+        .cute-frame::after {
+            content: '✨';
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            font-size: 1.8rem;
+            animation: float 2s infinite ease-in-out;
+            filter: drop-shadow(0 0 5px rgba(255, 255, 255, 0.8));
+        }
+
+        .cute-frame::before {
+            content: '🪼';
+            position: absolute;
+            bottom: -15px;
+            left: -15px;
+            font-size: 2rem;
+            animation: float 3s infinite reverse ease-in-out;
+            z-index: 10;
+            filter: drop-shadow(0 0 5px rgba(216, 180, 254, 0.8));
+        }
+
+        .cute-frame img, .cute-frame video {
+            border-radius: 12px;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .cute-frame audio {
+            width: 90%;
+            margin-top: 10px;
+            z-index: 5;
+        }
+
+        .audio-icon {
+            font-size: 3rem;
+            animation: breathe 3s infinite;
+        }
+
+        /* Bintang Jatuh Kerlap-Kerlip (Background) */
+        .falling-star {
+            position: fixed;
+            width: 2px;
+            height: 2px;
+            background-color: white;
+            border-radius: 50%;
+            box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.8), 0 0 20px 4px rgba(216, 180, 254, 0.6);
+            animation: fall linear forwards;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-10vh) scale(0); opacity: 0; }
+            10% { opacity: 1; transform: translateY(0) scale(1); }
+            90% { opacity: 1; }
+            100% { transform: translateY(110vh) scale(0.2); opacity: 0; }
+        }
+
+        /* Animasi Meteor Ekor Panjang */
         .meteor {
             position: fixed;
             width: 2px;
-            height: 100px;
-            background: linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(147, 51, 234, 0.6) 20%, transparent 100%);
+            height: 90px;
+            background: linear-gradient(to top, rgba(255, 255, 255, 1) 0%, rgba(216, 180, 254, 0.6) 20%, transparent 100%);
             border-radius: 50px;
             z-index: -1;
             pointer-events: none;
+            animation: meteorShower linear forwards;
         }
 
         .meteor::after {
@@ -160,20 +330,111 @@
             height: 4px;
             background: #fff;
             border-radius: 50%;
-            box-shadow: 0 0 10px #fff;
+            box-shadow: 0 0 15px 3px rgba(255, 255, 255, 0.8), 0 0 30px 6px rgba(216, 180, 254, 0.9);
         }
 
-        /* BUNGA MEWAH ESTETIK */
-        .aesthetic-flower-box {
-            position: relative;
-            width: 180px;
-            height: 180px;
-            display: flex;
-            align-items: center;
+        @keyframes meteorShower {
+            0% { transform: rotate(45deg) translateY(-20vh); opacity: 0; }
+            10% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: rotate(45deg) translateY(150vh); opacity: 0; }
+        }
+        
+        /* Animasi Mengambang Global */
+        .global-mascot {
+            position: fixed;
+            font-size: 2.5rem;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.3;
+            animation: floatAround 20s infinite ease-in-out alternate;
+            filter: drop-shadow(0 0 10px rgba(216, 180, 254, 0.5));
+        }
+
+        @keyframes floatAround {
+            0% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -50px) rotate(10deg); }
+            66% { transform: translate(-20px, 40px) rotate(-5deg); }
+            100% { transform: translate(10px, -20px) rotate(5deg); }
+        }
+
+        /* Modal Layar Penuh */
+        #media-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            background: rgba(10, 5, 24, 0.95);
+            backdrop-filter: blur(10px);
+            display: none;
             justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        #media-modal.active {
+            opacity: 1;
+        }
+        #media-modal-content {
+            max-width: 90vw;
+            max-height: 90vh;
+            border-radius: 12px;
+            box-shadow: 0 0 50px rgba(216, 180, 254, 0.3);
+            object-fit: contain;
+            transform: scale(0.9);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        #media-modal.active #media-modal-content {
+            transform: scale(1);
+        }
+        
+        audio#media-modal-content {
+            width: 80vw;
+            max-width: 500px;
+            box-shadow: 0 0 30px rgba(244, 114, 182, 0.5);
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 50px;
+            color: #e9d5ff;
+            cursor: pointer;
+            transition: color 0.3s, transform 0.3s;
+            z-index: 100000;
+            line-height: 1;
+        }
+        .modal-close:hover {
+            color: #f472b6;
+            transform: scale(1.2) rotate(90deg);
+        }
+        
+        /* Indikator Penyimpanan Cloud */
+        .cloud-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(45, 20, 80, 0.6);
+            border: 1px solid rgba(216, 180, 254, 0.3);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #d8b4fe;
+            margin-bottom: 20px;
+        }
+
+        /* Bunga Estetik Baru */
+        .aesthetic-flower-container {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             z-index: 5;
         }
-
         .aura-ring {
             position: absolute;
             border-radius: 50%;
@@ -184,497 +445,901 @@
             pointer-events: none;
         }
         .ring-1 {
-            width: 160px;
-            height: 160px;
-            border: 1px dashed rgba(244, 114, 182, 0.3);
-            animation: spin 15s linear infinite;
+            width: 170px;
+            height: 170px;
+            border: 2px dashed rgba(244, 114, 182, 0.4);
+            animation: spinAura 20s linear infinite;
         }
         .ring-2 {
-            width: 190px;
-            height: 190px;
-            border: 1px solid rgba(216, 180, 254, 0.1);
-            box-shadow: inset 0 0 30px rgba(147, 51, 234, 0.1);
-            animation: spinReverse 20s linear infinite;
+            width: 200px;
+            height: 200px;
+            border: 1px solid rgba(216, 180, 254, 0.2);
+            box-shadow: inset 0 0 20px rgba(147, 51, 234, 0.2), 0 0 20px rgba(147, 51, 234, 0.2);
+            animation: spinAuraReverse 25s linear infinite;
         }
+        @keyframes spinAura { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
+        @keyframes spinAuraReverse { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(-360deg); } }
 
-        .orbital-spark {
+        .orbital-light {
             position: absolute;
             width: 100%;
             height: 100%;
-            animation: spin 8s linear infinite;
+            animation: spin 6s linear infinite;
+            transform-origin: center;
         }
-        .orbital-spark::after {
+        .orbital-light.reverse {
+            animation: spinReverse 8s linear infinite;
+        }
+        .orbital-light::after {
             content: '';
             position: absolute;
             top: 0;
             left: 50%;
-            width: 8px;
-            height: 8px;
+            width: 12px;
+            height: 12px;
             background: #fff;
             border-radius: 50%;
-            box-shadow: 0 0 15px 5px #f472b6, 0 0 30px 10px #9333ea;
+            box-shadow: 0 0 20px 8px #f472b6, 0 0 40px 15px #9333ea;
             transform: translateX(-50%);
+        }
+        .orbital-light.reverse::after {
+            top: auto;
+            bottom: 0;
+            box-shadow: 0 0 20px 8px #e9d5ff, 0 0 40px 15px #c084fc;
         }
 
         .lotus-petal {
             position: absolute;
             bottom: 25%;
-            width: 35px;
-            height: 95px;
+            width: 40px;
+            height: 90px;
             border-radius: 50% 50% 10% 10% / 100% 100% 10% 10%;
             transform-origin: bottom center;
-            mix-blend-mode: lighten;
-            animation: bloomLotus 5s infinite alternate ease-in-out;
+            box-shadow: inset 0 -10px 20px rgba(0,0,0,0.3);
+            transition: all 0.5s ease;
         }
+        .petal-bg-1 { background: linear-gradient(to top, #6b21a8, #d946ef); transform: rotate(-75deg) scale(0.8); animation: breatheL1 5s infinite alternate ease-in-out; }
+        .petal-bg-2 { background: linear-gradient(to top, #6b21a8, #d946ef); transform: rotate(75deg) scale(0.8); animation: breatheR1 5s infinite alternate ease-in-out; }
+        .petal-bg-3 { background: linear-gradient(to top, #7e22ce, #f472b6); transform: rotate(-45deg) scale(0.9); animation: breatheL2 5s infinite alternate ease-in-out; animation-delay: 0.5s; }
+        .petal-bg-4 { background: linear-gradient(to top, #7e22ce, #f472b6); transform: rotate(45deg) scale(0.9); animation: breatheR2 5s infinite alternate ease-in-out; animation-delay: 0.5s; }
         
-        /* Layer Petal */
-        .p-bg { background: linear-gradient(to top, #4c1d95, #db2777); opacity: 0.5; }
-        .p-md { background: linear-gradient(to top, #7e22ce, #f472b6); opacity: 0.7; transform: scale(0.9); }
-        .p-fg { background: linear-gradient(to top, #a855f7, #fdf4ff); opacity: 0.9; transform: scale(0.8); }
-
-        @keyframes bloomLotus {
-            0% { transform: rotate(var(--rot)) scale(0.9); opacity: 0.5; }
-            100% { transform: rotate(calc(var(--rot) + 5deg)) scale(1.1); opacity: 0.8; }
-        }
-
-        .flower-core-glow {
+        .petal-fg-1 { background: linear-gradient(to top, #a855f7, #fbcfe8); transform: rotate(-20deg) scale(1); animation: breatheL3 5s infinite alternate ease-in-out; animation-delay: 1s; z-index: 2;}
+        .petal-fg-2 { background: linear-gradient(to top, #a855f7, #fbcfe8); transform: rotate(20deg) scale(1); animation: breatheR3 5s infinite alternate ease-in-out; animation-delay: 1s; z-index: 2;}
+        .petal-center { background: linear-gradient(to top, #c084fc, #ffffff); transform: rotate(0deg) scale(1.1); animation: breatheC 5s infinite alternate ease-in-out; animation-delay: 1.5s; z-index: 3;}
+        
+        .lotus-core {
             position: absolute;
-            width: 30px;
-            height: 30px;
+            bottom: 20%;
+            width: 25px;
+            height: 25px;
             background: #fff;
             border-radius: 50%;
-            box-shadow: 0 0 30px 15px #f472b6, 0 0 60px 25px #9333ea;
-            z-index: 10;
-            animation: pulseCore 3s infinite alternate ease-in-out;
+            box-shadow: 0 0 20px 10px #f472b6, 0 0 40px 20px #9333ea, inset 0 0 10px #fdf4ff;
+            animation: corePulse 3s infinite alternate ease-in-out;
+            z-index: 4;
         }
-        @keyframes pulseCore { 0% { transform: scale(0.8); opacity: 0.7; } 100% { transform: scale(1.2); opacity: 1; } }
 
+        @keyframes breatheL1 { 0% { transform: rotate(-75deg) scale(0.8); } 100% { transform: rotate(-85deg) scale(0.85); } }
+        @keyframes breatheR1 { 0% { transform: rotate(75deg) scale(0.8); } 100% { transform: rotate(85deg) scale(0.85); } }
+        @keyframes breatheL2 { 0% { transform: rotate(-45deg) scale(0.9); } 100% { transform: rotate(-55deg) scale(0.95); } }
+        @keyframes breatheR2 { 0% { transform: rotate(45deg) scale(0.9); } 100% { transform: rotate(55deg) scale(0.95); } }
+        @keyframes breatheL3 { 0% { transform: rotate(-20deg) scale(1); } 100% { transform: rotate(-28deg) scale(1.05); } }
+        @keyframes breatheR3 { 0% { transform: rotate(20deg) scale(1); } 100% { transform: rotate(28deg) scale(1.05); } }
+        @keyframes breatheC { 0% { transform: rotate(0deg) scale(1.1); } 100% { transform: rotate(0deg) scale(1.15); filter: brightness(1.2); } }
+        @keyframes corePulse { 0% { transform: scale(0.9); opacity: 0.8; } 100% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 30px 15px #f472b6, 0 0 50px 25px #9333ea; } }
+
+        /* Marquee Text */
         .marquee-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
             width: 100%;
             background: #000;
-            padding: 15px 0;
-            overflow: hidden;
-            margin-top: auto;
             border-top: 2px solid #1a0b2e;
+            padding: 12px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            z-index: 20;
         }
-
         .marquee-text {
             display: inline-block;
-            white-space: nowrap;
-            animation: scroll 25s linear infinite;
+            animation: scrollText 20s linear infinite;
             color: #f472b6;
             font-family: 'Cinzel', serif;
-            letter-spacing: 3px;
             font-size: 1.1rem;
+            letter-spacing: 2px;
+            text-shadow: 0 0 10px rgba(244, 114, 182, 0.4);
         }
+        @keyframes scrollText { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
 
-        @keyframes scroll { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
-
-        .cute-frame {
-            border: 3px solid rgba(216, 180, 254, 0.4);
-            border-radius: 20px;
+        /* Editable Profile Styles */
+        .editable-desc {
+            outline: none;
             padding: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-            cursor: pointer;
-            position: relative;
+            border-radius: 8px;
+            transition: background 0.3s, box-shadow 0.3s;
+            cursor: text;
         }
-
-        .cute-frame:hover { transform: scale(1.05) rotate(1deg); border-color: #f472b6; box-shadow: 0 0 20px rgba(244, 114, 182, 0.4); }
-        .cute-frame img, .cute-frame video { 
-            border-radius: 12px; 
-            width: 100%; 
-            height: 220px; 
-            object-fit: cover; 
+        .editable-desc:hover, .editable-desc:focus {
+            background: rgba(216, 180, 254, 0.1);
+            box-shadow: 0 0 10px rgba(216, 180, 254, 0.2);
         }
-
-        #status-bar {
-            position: fixed;
-            bottom: 60px;
-            right: 20px;
-            background: var(--purple-main);
-            color: white;
-            padding: 8px 16px;
+        .profile-img-box {
+            width: 220px;
+            height: 220px;
             border-radius: 20px;
-            font-size: 0.8rem;
-            display: none;
-            z-index: 100;
+            object-fit: cover;
+            border: 3px solid rgba(244, 114, 182, 0.5);
+            box-shadow: 0 0 25px rgba(216, 180, 254, 0.3);
+            transition: transform 0.4s;
+        }
+        .group:hover .profile-img-box {
+            transform: scale(1.05);
+            border-color: #d8b4fe;
         }
 
-        #media-modal {
+        /* Toast Notifikasi */
+        #toast-container {
             position: fixed;
-            inset: 0;
-            background: rgba(10, 5, 20, 0.95);
-            z-index: 2000;
-            display: none;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(10px);
+            top: 20px;
+            right: 20px;
+            z-index: 999999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
-
-        #media-modal-content {
-            max-width: 90%;
-            max-height: 85%;
-            border-radius: 15px;
+        .toast {
+            background: rgba(45, 20, 80, 0.9);
+            border: 1px solid rgba(216, 180, 254, 0.5);
+            color: #fdf4ff;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.1rem;
+            transform: translateX(120%);
+            transition: transform 0.3s ease-out;
         }
-
-        .close-modal {
-            position: absolute;
-            top: 25px;
-            right: 35px;
-            font-size: 45px;
-            cursor: pointer;
-            color: white;
-            line-height: 1;
+        .toast.show {
+            transform: translateX(0);
+        }
+        .toast.error {
+            border-color: #ef4444;
+            color: #fee2e2;
         }
 
     </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body class="antialiased selection:bg-purple-600 selection:text-white flex flex-col min-h-screen">
+
+    <div id="toast-container"></div>
 
     <div id="loader-wrapper">
-        <div class="loader-ring"></div>
-        <div class="mt-8 font-brand tracking-widest text-lg text-purple-200">MEMANGGIL KENANGAN...</div>
+        <div class="loader-ring">
+            <div class="loader-core"></div>
+        </div>
+        <div class="loader-text font-brand">MEMANGGIL KENANGAN...</div>
     </div>
 
     <div class="bg-character" id="bg-img"></div>
     <div class="bg-overlay"></div>
-    <div id="status-bar">Sedang memproses...</div>
+    <canvas id="particle-canvas"></canvas>
+    
+    <div class="global-mascot" style="top: 20%; left: 10%;">🐠</div>
+    <div class="global-mascot" style="top: 70%; right: 15%; animation-delay: -5s; font-size: 3rem;">🪼</div>
 
-    <div id="main-content" class="opacity-0 transition-opacity duration-1000 flex flex-col flex-grow">
+    <div id="main-content" class="opacity-0 transition-opacity duration-1000 flex-grow flex flex-col">
         
-        <nav class="fixed top-0 w-full glass z-50 px-6 py-4 flex justify-between items-center transition-all">
-            <h1 class="font-brand text-xl md:text-2xl cursor-pointer tracking-widest text-purple-100" onclick="pindah('home')">Aryan & Luvie</h1>
-            <div class="flex space-x-8 text-sm md:text-lg font-brand tracking-wide">
-                <button class="hover:text-pink-300 transition-colors" onclick="pindah('album')">Album</button>
-                <button class="hover:text-pink-300 transition-colors" onclick="pindah('profil')">Profil</button>
+        <nav class="fixed top-0 w-full glass z-50 px-5 md:px-10 py-4 flex justify-between items-center transition-all duration-300">
+            <h1 class="font-brand text-2xl md:text-4xl text-purple-200 tracking-widest text-glow floating-element cursor-pointer" onclick="pindahHalaman('halaman-beranda')" style="animation-duration: 4s;">
+                Aryan <span class="text-pink-300 opacity-90 mx-1">&</span> Luvie
+            </h1>
+            
+            <div class="flex space-x-5 md:space-x-10 text-sm md:text-lg font-brand text-purple-200 tracking-widest">
+                <button onclick="pindahHalaman('halaman-album')" class="hover:text-pink-300 transition-colors duration-300 relative group cursor-pointer py-1 bg-transparent border-none">
+                    Album
+                    <span class="absolute bottom-0 left-0 w-0 h-[2px] bg-pink-300 transition-all duration-300 group-hover:w-full shadow-[0_0_8px_rgba(244,114,182,0.8)]"></span>
+                </button>
+                <button onclick="pindahHalaman('halaman-profil')" class="hover:text-pink-300 transition-colors duration-300 relative group cursor-pointer py-1 bg-transparent border-none">
+                    Profil
+                    <span class="absolute bottom-0 left-0 w-0 h-[2px] bg-pink-300 transition-all duration-300 group-hover:w-full shadow-[0_0_8px_rgba(244,114,182,0.8)]"></span>
+                </button>
             </div>
         </nav>
 
-        <main id="home" class="page-view active-view items-center justify-center">
-            <div class="glass rounded-3xl p-8 md:p-14 max-w-3xl w-full text-center space-y-8 relative overflow-hidden">
-                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-400 to-transparent"></div>
-                <div class="space-y-6 text-xl md:text-2xl leading-relaxed text-purple-50">
-                    <p class="reveal-text">Waktu terus berjalan, namun bayanganmu tetap abadi di sudut ingatanku.</p>
-                    <p class="reveal-text">Kamu pernah menjadi alasan aku tersenyum sebelum fajar menyapa.</p>
-                    <p class="reveal-text">Sekarang kita hanya dua orang asing yang berbagi ribuan kenangan masa lalu.</p>
-                    <p class="reveal-text text-pink-300 font-bold italic text-3xl pt-6">Semoga kebahagiaan selalu menyertaimu.</p>
+        <!-- HALAMAN 1: Beranda -->
+        <main id="halaman-beranda" class="page-view active-view z-10 relative">
+            <div class="glass rounded-3xl p-8 md:p-14 max-w-3xl w-full text-center relative overflow-hidden">
+                <div class="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-50"></div>
+
+                <div class="space-y-8 md:space-y-12 text-lg md:text-2xl leading-relaxed text-purple-100">
+                    <p class="reveal-text delay-[500ms]">Waktu terus berjalan. Bayanganmu masih tertinggal jelas di sudut ruang ingatanku.</p>
+                    
+                    <p class="reveal-text delay-[1000ms]">Kita pernah menyusun masa depan bersama. Sekarang kita hanya dua orang asing yang berbagi kenangan masa lalu.</p>
+                    
+                    <p class="reveal-text delay-[1500ms]">Aku masih mengingat caramu tertawa. Aku juga belum lupa caramu menatap mataku hari itu.</p>
+                    
+                    <p class="reveal-text delay-[2000ms]">Semua kisah indah itu kini telah menjadi lembaran cerita lama yang tak bisa ditulis ulang.</p>
+                    
+                    <p class="reveal-text delay-[2500ms]">Kamu mengajariku cara mencintai. Kamu juga mengajariku cara melepaskan dengan ikhlas.</p>
+                    
+                    <p class="reveal-text delay-[3000ms]">Langkah kita sekarang berbeda arah. Aku berdoa langkahmu selalu membawamu pada kebaikan.</p>
+                    
+                    <p class="reveal-text delay-[3500ms]">Jangan pernah menyerah pada mimpimu. Aku tahu kamu orang yang kuat dan pantang menyerah.</p>
+                    
+                    <p class="reveal-text delay-[4000ms]">Rasa sakit ini akan sembuh seiring waktu. Kita berdua pantas mendapatkan akhir yang bahagia di cerita yang berbeda.</p>
+                    
+                    <p class="reveal-text delay-[4500ms]">Setiap kenangan bersamamu adalah pelajaran berharga. Aku tidak menyesal pernah mengenalmu.</p>
+                    
+                    <p class="reveal-text delay-[5000ms]">Kepergianmu memberi ruang untuk babak baru dalam hidupku. Aku harap hal yang sama terjadi padamu.</p>
+                    
+                    <p class="reveal-text delay-[5500ms]">Kamu selalu punya tempat khusus di hatiku. Tempat itu kini terkunci rapat sebagai kenangan.</p>
+                    
+                    <p class="reveal-text delay-[6000ms]">Tersenyumlah selalu. Senyummu pernah menjadi alasan utamaku untuk bahagia setiap hari.</p>
+                    
+                    <p class="reveal-text delay-[6500ms]">Jaga dirimu baik-baik di sana. Kejar semua hal yang dulu sering kamu ceritakan padaku.</p>
+                    
+                    <p class="reveal-text delay-[7000ms]">Cinta kita mungkin usai. Rasa hormat dan doaku untukmu tidak akan pernah putus.</p>
+                    
+                    <p class="reveal-text delay-[7500ms]">Hari ini aku belajar merelakan. Besok aku akan belajar melangkah maju tanpamu.</p>
+                    
+                    <p class="reveal-text delay-[8000ms]">Kamu adalah masa lalu yang indah. Aku siap menyambut masa depan yang lebih cerah.</p>
+                    
+                    <p class="reveal-text delay-[8500ms]">Kegagalan kita bukan akhir dari segalanya. Ini adalah awal dari versi terbaik diri kita masing-masing.</p>
+                    
+                    <p class="reveal-text delay-[9000ms]">Teruslah bersinar. Dunia butuh cahaya dan semangat yang selalu kamu miliki.</p>
+                    
+                    <p class="reveal-text delay-[9500ms]">Terima kasih untuk setiap detik bahagia yang pernah kamu berikan dalam hidupku.</p>
+                    
+                    <p class="reveal-text delay-[10000ms] text-purple-300 font-semibold italic text-glow">
+                        Semoga kamu menemukan kebahagiaan sejati yang selalu kamu cari. Biarkan aku menyimpan sisa rindu ini sendiri.
+                    </p>
                 </div>
-                <div class="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-purple-400 to-transparent"></div>
+
+                <div class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-50"></div>
             </div>
         </main>
 
-        <section id="album" class="page-view items-center">
-            <h2 class="font-brand text-3xl md:text-5xl mb-12 text-center text-glow">Koleksi Memori</h2>
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 w-full max-w-6xl">
-                <div class="folder-lightning glass p-8 rounded-3xl text-center" onclick="bukaFolder('Awal Bertemu')">
-                    <span class="text-6xl block mb-6">📁</span>
-                    <span class="font-brand text-xl text-purple-100">Awal Bertemu</span>
+        <!-- HALAMAN 2: Daftar Folder -->
+        <section id="halaman-album" class="page-view z-10 relative">
+            <h2 class="font-brand text-3xl md:text-5xl text-pink-300 mb-4 text-glow">Koleksi Memori</h2>
+            <div class="cloud-badge mb-12">
+                <span>☁️</span> Tersimpan di Awan (Cloud) - Bisa dilihat di perangkat lain
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl w-full">
+                <!-- Folder 1 -->
+                <div class="folder-lightning glass rounded-2xl p-6 text-center cursor-pointer transition-transform duration-500 hover:-translate-y-3 group" onclick="bukaIsiFolder('Awal Bertemu')">
+                    <span class="text-6xl mb-4 block group-hover:scale-110 transition-transform duration-300">📁</span>
+                    <h3 class="font-brand text-xl text-purple-200">Awal Bertemu</h3>
+                    <p class="text-purple-300/60 mt-2 text-xs">Tempat kisah dimulai</p>
                 </div>
-                <div class="folder-lightning glass p-8 rounded-3xl text-center" onclick="bukaFolder('Masa Indah')">
-                    <span class="text-6xl block mb-6">📁</span>
-                    <span class="font-brand text-xl text-purple-100">Masa Indah</span>
+
+                <!-- Folder 2 -->
+                <div class="folder-lightning glass rounded-2xl p-6 text-center cursor-pointer transition-transform duration-500 hover:-translate-y-3 group" onclick="bukaIsiFolder('Masa Indah')">
+                    <span class="text-6xl mb-4 block group-hover:scale-110 transition-transform duration-300">📁</span>
+                    <h3 class="font-brand text-xl text-purple-200">Masa Indah</h3>
+                    <p class="text-purple-300/60 mt-2 text-xs">Tawa dan senyum</p>
                 </div>
-                <div class="folder-lightning glass p-8 rounded-3xl text-center" onclick="bukaFolder('Luka & Rindu')">
-                    <span class="text-6xl block mb-6">📁</span>
-                    <span class="font-brand text-xl text-purple-100">Luka & Rindu</span>
+
+                <!-- Folder 3 -->
+                <div class="folder-lightning glass rounded-2xl p-6 text-center cursor-pointer transition-transform duration-500 hover:-translate-y-3 group" onclick="bukaIsiFolder('Luka & Rindu')">
+                    <span class="text-6xl mb-4 block group-hover:scale-110 transition-transform duration-300">📁</span>
+                    <h3 class="font-brand text-xl text-purple-200">Luka & Rindu</h3>
+                    <p class="text-purple-300/60 mt-2 text-xs">Bagian yang belum usai</p>
                 </div>
-                <div class="folder-lightning glass p-8 rounded-3xl text-center" onclick="bukaFolder('Melodi Hati')">
-                    <span class="text-6xl block mb-6">🎵</span>
-                    <span class="font-brand text-xl text-purple-100">Melodi Hati</span>
+                
+                <!-- Folder 4 (Audio) -->
+                <div class="folder-lightning glass rounded-2xl p-6 text-center cursor-pointer transition-transform duration-500 hover:-translate-y-3 group" onclick="bukaIsiFolder('Melodi Hati')">
+                    <span class="text-6xl mb-4 block group-hover:scale-110 transition-transform duration-300">🎵</span>
+                    <h3 class="font-brand text-xl text-pink-300">Melodi Hati</h3>
+                    <p class="text-purple-300/60 mt-2 text-xs">Lagu dan rekaman suara</p>
                 </div>
             </div>
         </section>
 
-        <section id="folder-detail" class="page-view items-center">
-            <div class="w-full max-w-6xl flex flex-col md:flex-row items-center justify-between mb-12 gap-6">
-                <button class="font-brand text-xl hover:text-pink-300 transition flex items-center gap-2" onclick="pindah('album')">
+        <!-- HALAMAN 3: Isi Folder -->
+        <section id="halaman-isi-folder" class="page-view z-10 relative">
+            <div class="w-full max-w-6xl glass rounded-3xl p-6 md:p-10 relative">
+                
+                <button onclick="pindahHalaman('halaman-album')" class="absolute top-4 left-6 text-purple-300 hover:text-pink-400 font-brand transition-transform hover:-translate-x-1 z-20 text-lg flex items-center gap-2">
                     <span>←</span> Kembali
                 </button>
-                <h3 id="folder-title" class="font-brand text-3xl md:text-5xl text-pink-300">Folder</h3>
-                <label class="cursor-pointer bg-gradient-to-r from-purple-600 to-pink-600 px-8 py-3 rounded-full hover:scale-105 transition shadow-lg text-white font-bold">
-                    ✨ Tambah Memori ✨
-                    <input type="file" class="hidden" id="upload-input" multiple accept="image/*,video/*,audio/*">
-                </label>
-            </div>
-            <div id="media-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 w-full max-w-6xl"></div>
-        </section>
-
-        <section id="profil" class="page-view items-center h-full">
-            <h2 class="font-brand text-3xl md:text-5xl mb-16 text-glow">Profil Kami</h2>
-            
-            <div class="flex flex-col md:flex-row items-center justify-between gap-12 w-full max-w-6xl flex-grow px-4 mb-20">
                 
-                <div class="flex-1 text-center group">
-                    <label class="cursor-pointer relative block">
-                        <img id="p1-img" src="" class="w-64 h-64 md:w-80 md:h-80 mx-auto rounded-3xl object-cover border-4 border-purple-500/50 glass transition-all group-hover:scale-105 group-hover:border-purple-300 shadow-2xl">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/50 rounded-3xl transition font-brand tracking-widest text-white">UBAH FOTO</div>
-                        <input type="file" class="hidden" onchange="uploadProfil('p1', this)">
+                <h3 id="judul-folder" class="font-brand text-3xl md:text-4xl text-pink-300 mb-2 mt-8 text-center text-glow">Nama Folder</h3>
+                <p class="text-center text-purple-200 text-sm mb-8 opacity-70">Disinkronkan secara online. Maks video/audio ~700KB.</p>
+                
+                <div class="flex justify-center mb-10">
+                    <label class="cursor-pointer bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold py-3 px-8 rounded-full transition-all shadow-[0_0_20px_rgba(216,180,254,0.5)] hover:shadow-[0_0_30px_rgba(244,114,182,0.8)] hover:-translate-y-1 flex items-center gap-2">
+                        <span>✨</span> Tambah Memori <span>✨</span>
+                        <input type="file" class="hidden" multiple accept="image/*,video/*,audio/*" id="upload-media">
                     </label>
-                    <h4 class="font-brand text-4xl mt-8 text-purple-200 tracking-widest">Aryan</h4>
-                    <p id="p1-desc" contenteditable="true" onblur="saveProfil('p1')" class="mt-6 opacity-80 text-xl leading-relaxed max-w-sm mx-auto p-4 rounded-xl hover:bg-white/5 transition italic text-purple-100">Ketuk untuk ubah cerita Aryan.</p>
+                </div>
+                
+                <div id="grid-media" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 md:gap-10 p-4">
+                    <!-- Media akan dimuat secara real-time dari Firebase -->
                 </div>
 
-                <!-- BUNGA LOTUS MEWAH TENGAH -->
-                <div class="aesthetic-flower-box my-12">
-                    <div class="aura-ring ring-1"></div>
-                    <div class="aura-ring ring-2"></div>
-                    <div class="orbital-spark"></div>
-                    
-                    <!-- Layer Belakang -->
-                    <div class="lotus-petal p-bg" style="--rot: 0deg"></div>
-                    <div class="lotus-petal p-bg" style="--rot: 60deg"></div>
-                    <div class="lotus-petal p-bg" style="--rot: 120deg"></div>
-                    <div class="lotus-petal p-bg" style="--rot: 180deg"></div>
-                    <div class="lotus-petal p-bg" style="--rot: 240deg"></div>
-                    <div class="lotus-petal p-bg" style="--rot: 300deg"></div>
-
-                    <!-- Layer Tengah -->
-                    <div class="lotus-petal p-md" style="--rot: 30deg"></div>
-                    <div class="lotus-petal p-md" style="--rot: 90deg"></div>
-                    <div class="lotus-petal p-md" style="--rot: 150deg"></div>
-                    <div class="lotus-petal p-md" style="--rot: 210deg"></div>
-                    <div class="lotus-petal p-md" style="--rot: 270deg"></div>
-                    <div class="lotus-petal p-md" style="--rot: 330deg"></div>
-
-                    <!-- Layer Depan -->
-                    <div class="lotus-petal p-fg" style="--rot: 0deg"></div>
-                    <div class="lotus-petal p-fg" style="--rot: 120deg"></div>
-                    <div class="lotus-petal p-fg" style="--rot: 240deg"></div>
-
-                    <div class="flower-core-glow"></div>
+                <div id="pesan-kosong" class="text-center text-purple-300/50 py-10 font-brand text-xl">
+                    Belum ada kenangan di awan. Silakan tambahkan file.
+                </div>
+            </div>
+        </section>
+        
+        <!-- HALAMAN 4: Profil -->
+        <section id="halaman-profil" class="page-view z-10 relative pb-24">
+            <h2 class="font-brand text-3xl md:text-5xl text-pink-300 mb-12 text-glow text-center w-full">Profil Kami</h2>
+            
+            <div class="flex flex-col md:flex-row justify-between items-center gap-10 max-w-6xl w-full relative z-10 px-4">
+                
+                <!-- Sisi Kiri: Aryan -->
+                <div class="glass rounded-3xl p-6 flex-1 text-center flex flex-col items-center max-w-md w-full">
+                    <label class="relative group cursor-pointer mb-6 block">
+                        <img id="img-aryan" src="https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=200&auto=format&fit=crop" class="profile-img-box" alt="Profil Aryan">
+                        <div class="absolute inset-0 bg-black/60 rounded-[20px] flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span class="text-3xl mb-2">📸</span>
+                            <span class="text-white font-brand text-sm tracking-wider">Ubah Foto Awan</span>
+                        </div>
+                        <input type="file" hidden accept="image/*" onchange="gantiFotoProfil('aryan', this)">
+                    </label>
+                    <h3 class="font-brand text-3xl text-purple-200 mb-3">Aryan</h3>
+                    <p id="desc-aryan" contenteditable="true" onblur="simpanTeksProfil('aryan', this.innerText)" class="text-purple-100/80 text-base leading-relaxed editable-desc">Klik teks ini untuk mengubah deksripsi. Menyimpan kenangan dalam diam. Berharap waktu bisa diputar kembali untuk mengubah satu keputusan di masa lalu.</p>
                 </div>
 
-                <div class="flex-1 text-center group">
-                    <label class="cursor-pointer relative block">
-                        <img id="p2-img" src="" class="w-64 h-64 md:w-80 md:h-80 mx-auto rounded-3xl object-cover border-4 border-pink-500/50 glass transition-all group-hover:scale-105 group-hover:border-pink-300 shadow-2xl">
-                        <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 bg-black/50 rounded-3xl transition font-brand tracking-widest text-white">UBAH FOTO</div>
-                        <input type="file" class="hidden" onchange="uploadProfil('p2', this)">
+                <!-- Tengah: Bunga Animasi Mekar -->
+                <div class="hidden md:flex flex-col items-center justify-center shrink-0 w-48">
+                    <div class="aesthetic-flower-container">
+                        <div class="aura-ring ring-1"></div>
+                        <div class="aura-ring ring-2"></div>
+                        <div class="orbital-light"></div>
+                        <div class="orbital-light reverse"></div>
+                        
+                        <div class="lotus-petal petal-bg-1"></div>
+                        <div class="lotus-petal petal-bg-2"></div>
+                        <div class="lotus-petal petal-bg-3"></div>
+                        <div class="lotus-petal petal-bg-4"></div>
+                        
+                        <div class="lotus-petal petal-fg-1"></div>
+                        <div class="lotus-petal petal-fg-2"></div>
+                        <div class="lotus-petal petal-center"></div>
+                        
+                        <div class="lotus-core"></div>
+                    </div>
+                </div>
+
+                <!-- Bunga Animasi untuk Layar Mobile -->
+                <div class="flex md:hidden flex-col items-center justify-center shrink-0 h-40 my-6">
+                    <div class="aesthetic-flower-container" style="transform: scale(0.75);">
+                        <div class="aura-ring ring-1"></div>
+                        <div class="aura-ring ring-2"></div>
+                        <div class="orbital-light"></div>
+                        <div class="orbital-light reverse"></div>
+                        
+                        <div class="lotus-petal petal-bg-1"></div>
+                        <div class="lotus-petal petal-bg-2"></div>
+                        <div class="lotus-petal petal-bg-3"></div>
+                        <div class="lotus-petal petal-bg-4"></div>
+                        
+                        <div class="lotus-petal petal-fg-1"></div>
+                        <div class="lotus-petal petal-fg-2"></div>
+                        <div class="lotus-petal petal-center"></div>
+                        
+                        <div class="lotus-core"></div>
+                    </div>
+                </div>
+
+                <!-- Sisi Kanan: Luvie -->
+                <div class="glass rounded-3xl p-6 flex-1 text-center flex flex-col items-center max-w-md w-full">
+                    <label class="relative group cursor-pointer mb-6 block">
+                        <img id="img-luvie" src="https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?q=80&w=200&auto=format&fit=crop" class="profile-img-box" alt="Profil Luvie">
+                        <div class="absolute inset-0 bg-black/60 rounded-[20px] flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span class="text-3xl mb-2">📸</span>
+                            <span class="text-white font-brand text-sm tracking-wider">Ubah Foto Awan</span>
+                        </div>
+                        <input type="file" hidden accept="image/*" onchange="gantiFotoProfil('luvie', this)">
                     </label>
-                    <h4 class="font-brand text-4xl mt-8 text-pink-200 tracking-widest">Luvie</h4>
-                    <p id="p2-desc" contenteditable="true" onblur="saveProfil('p2')" class="mt-6 opacity-80 text-xl leading-relaxed max-w-sm mx-auto p-4 rounded-xl hover:bg-white/5 transition italic text-pink-100">Ketuk untuk ubah cerita Luvie.</p>
+                    <h3 class="font-brand text-3xl text-purple-200 mb-3">Luvie</h3>
+                    <p id="desc-luvie" contenteditable="true" onblur="simpanTeksProfil('luvie', this.innerText)" class="text-purple-100/80 text-base leading-relaxed editable-desc">Klik teks ini untuk mengubah deskripsi. Melangkah maju membawa luka yang perlahan sembuh. Memilih jalannya sendiri menuju cahaya yang baru.</p>
                 </div>
 
             </div>
 
             <div class="marquee-container">
-                <div class="marquee-text">Waktu terus berubah, rasa menetap di antara celah kenangan. Jejak kita abadi di tempat ini selamanya... ✨</div>
+                <span class="marquee-text">✨ Waktu terus berjalan, tetapi kenangan akan terus mekar di tempat ini. Walau arah langkah kita berbeda, jejak yang pernah kita buat tetap abadi dalam ruang waktu... ✨</span>
             </div>
         </section>
 
-        <footer class="py-6 text-center text-[10px] opacity-30 font-brand tracking-[0.5em] mt-auto">ARLIE MEMORY &copy; 2026</footer>
     </div>
 
-    <div id="media-modal" onclick="tutupModal(event)">
-        <span class="close-modal" onclick="tutupModal(event)">&times;</span>
+    <footer class="w-full py-6 text-center text-purple-400/50 text-sm font-brand glass z-10 mt-auto">
+        &copy; Kenangan yang berlalu.
+    </footer>
+
+    <!-- Modal Layar Penuh -->
+    <div id="media-modal" onclick="tutupFullscreen(event)">
+        <span class="modal-close" onclick="tutupFullscreen(event)">&times;</span>
         <div id="modal-container" class="flex justify-center items-center w-full h-full"></div>
     </div>
 
+    
+
+    <!-- Script Utama Modul Cloud Firebase -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        
+        import { initializeApp } from "firebase/app";
+        import { getAnalytics } from "firebase/analytics";
+        
+        
+        
         const firebaseConfig = {
-            apiKey: "AIzaSyCC_RJ1UfgmEmGDSTY7ZWMpasZDTCjDjpw",
-            authDomain: "yanaai-75947.firebaseapp.com",
-            projectId: "yanaai-75947",
-            storageBucket: "yanaai-75947.firebasestorage.app",
-            messagingSenderId: "1043303145670",
-            appId: "1:1043303145670:web:0001a630023ccaf06f77c7",
-            measurementId: "G-3B1G5T9BM4"
+          apiKey: "AIzaSyCC_RJ1UfgmEmGDSTY7ZWMpasZDTCjDjpw",
+          authDomain: "yanaai-75947.firebaseapp.com",
+          projectId: "yanaai-75947",
+          storageBucket: "yanaai-75947.firebasestorage.app",
+          messagingSenderId: "1043303145670",
+          appId: "1:1043303145670:web:0001a630023ccaf06f77c7",
+          measurementId: "G-3B1G5T9BM4"
         };
-
+        
+        
         const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appIdPath = "yanaai-75947";
+        const analytics = getAnalytics(app);
 
-        let user = null;
-        let currentFolder = "";
-
-        const init = async () => {
-            try {
-                await signInAnonymously(auth);
-                onAuthStateChanged(auth, (u) => {
-                    user = u;
-                    if(u) syncProfil();
-                });
-            } catch (e) { console.error("Firebase Gagal", e); }
-
+        // Sistem Toast (Notifikasi UI)
+        window.showToast = (msg, isError = false) => {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${isError ? 'error' : ''}`;
+            toast.innerText = msg;
+            container.appendChild(toast);
+            
+            setTimeout(() => toast.classList.add('show'), 10);
             setTimeout(() => {
-                const loader = document.getElementById('loader-wrapper');
-                loader.style.opacity = '0';
-                setTimeout(() => {
-                    loader.style.display = 'none';
-                    document.getElementById('main-content').classList.remove('opacity-0');
-                    triggerText();
-                }, 1000);
-            }, 3000);
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
         };
 
-        window.pindah = (id) => {
-            document.querySelectorAll('.page-view').forEach(p => p.classList.remove('active-view'));
-            const target = document.getElementById(id);
-            if(target) target.classList.add('active-view');
-            if(id === 'home') triggerText();
-            window.scrollTo({top: 0, behavior: 'smooth'});
+        // Helper Aman: Ubah kode base64 awan kembali ke file lokal aman agar browser tidak memblokir
+        const convertToBlobUrl = (dataUri) => {
+            if (!dataUri || !dataUri.startsWith('data:')) return dataUri;
+            try {
+                const arr = dataUri.split(',');
+                const mime = arr[0].match(/:(.*?);/)[1];
+                const bstr = atob(arr[1]);
+                let n = bstr.length;
+                const u8arr = new Uint8Array(n);
+                while (n--) {
+                    u8arr[n] = bstr.charCodeAt(n);
+                }
+                const blob = new Blob([u8arr], { type: mime });
+                return URL.createObjectURL(blob);
+            } catch (e) {
+                console.error("Gagal konversi media aman", e);
+                return dataUri;
+            }
         };
 
-        const triggerText = () => {
-            const texts = document.querySelectorAll('.reveal-text');
-            texts.forEach((t, i) => {
-                t.classList.remove('active');
-                setTimeout(() => t.classList.add('active'), i * 400 + 100);
-            });
+        // Firebase Setup & State
+        let db, auth, currentUser;
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'kenangan-arlie-default';
+        let folderAktif = '';
+        let unsubscribeMedia = null;
+
+        const initFirebase = async () => {
+            try {
+                if (typeof __firebase_config === 'undefined') {
+                    console.warn("Konfigurasi awan tidak tersedia di pratinjau ini.");
+                    return;
+                }
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                onAuthStateChanged(auth, (user) => {
+                    currentUser = user;
+                    if (user) {
+                        muatDataProfil();
+                    }
+                });
+            } catch (err) {
+                console.error("Gagal terhubung ke awan:", err);
+            }
         };
 
-        const notify = (msg) => {
-            const bar = document.getElementById('status-bar');
-            bar.innerText = msg;
-            bar.style.display = 'block';
-            setTimeout(() => bar.style.display = 'none', 3000);
+        // Helper Konversi File ke Base64 menggunakan metode stabil (menghindari error CSP awal)
+        const fileToBase64 = async (file, maxWidth = 800) => {
+            if (!file.type.startsWith('image/')) {
+                if (file.size > 700000) throw new Error("FILE_TOO_BIG");
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
+            
+            try {
+                const bitmap = await createImageBitmap(file);
+                const canvas = document.createElement('canvas');
+                let width = bitmap.width;
+                let height = bitmap.height;
+                if (width > maxWidth) {
+                    height *= maxWidth / width;
+                    width = maxWidth;
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(bitmap, 0, 0, width, height);
+                return canvas.toDataURL('image/jpeg', 0.6);
+            } catch (err) {
+                console.error(err);
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+            }
         };
 
-        window.bukaFolder = (nama) => {
-            currentFolder = nama;
-            document.getElementById('folder-title').innerText = nama;
-            pindah('folder-detail');
-            syncMedia();
+        // --- Logika Profil Firebase ---
+        window.simpanTeksProfil = async (id, teks) => {
+            if (!currentUser || !db) return;
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', id);
+                await setDoc(docRef, { teks: teks }, { merge: true });
+                showToast("Teks profil berhasil diperbarui ke awan.");
+            } catch (err) {
+                console.error(err);
+                showToast("Gagal menyimpan ke awan.", true);
+            }
         };
 
-        const toBase64 = (file) => new Promise((res, rej) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => res(reader.result);
-            reader.onerror = e => rej(e);
+        window.gantiFotoProfil = async (id, inputElem) => {
+            if (!inputElem.files || inputElem.files.length === 0 || !currentUser || !db) return;
+            const file = inputElem.files[0];
+            
+            showToast("Mengunggah foto profil ke awan...");
+            try {
+                // Tampilan sementara
+                const url = URL.createObjectURL(file);
+                document.getElementById("img-" + id).src = url;
+
+                const base64Data = await fileToBase64(file, 400); 
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'profiles', id);
+                await setDoc(docRef, { foto: base64Data }, { merge: true });
+                showToast("Foto berhasil diperbarui.");
+            } catch (err) {
+                console.error(err);
+                showToast("Gagal menyimpan foto.", true);
+            }
+        };
+
+        function muatDataProfil() {
+            if (!currentUser || !db) return;
+            const profilesRef = collection(db, 'artifacts', appId, 'public', 'data', 'profiles');
+            
+            onSnapshot(profilesRef, (snapshot) => {
+                snapshot.docs.forEach(docSnap => {
+                    const id = docSnap.id;
+                    const data = docSnap.data();
+                    if (data.teks && document.getElementById("desc-" + id)) {
+                        document.getElementById("desc-" + id).innerText = data.teks;
+                    }
+                    if (data.foto && document.getElementById("img-" + id)) {
+                        document.getElementById("img-" + id).src = convertToBlobUrl(data.foto);
+                    }
+                });
+            }, (error) => console.error("Error muat profil:", error));
+        }
+
+        // --- Logika Album Firebase ---
+        window.bukaIsiFolder = (nama) => {
+            folderAktif = nama;
+            document.getElementById('judul-folder').innerText = nama;
+            window.pindahHalaman('halaman-isi-folder');
+            if (currentUser && db) muatMediaFolder();
+        };
+
+        function muatMediaFolder() {
+            const grid = document.getElementById('grid-media');
+            const pesanKosong = document.getElementById('pesan-kosong');
+            
+            if (unsubscribeMedia) unsubscribeMedia(); 
+
+            const mediaRef = collection(db, 'artifacts', appId, 'public', 'data', 'media');
+            
+            unsubscribeMedia = onSnapshot(mediaRef, (snapshot) => {
+                grid.innerHTML = '';
+                
+                const items = snapshot.docs
+                    .map(doc => ({ id: doc.id, ...doc.data() }))
+                    .filter(item => item.folder === folderAktif)
+                    .sort((a, b) => a.waktu - b.waktu);
+
+                if (items.length === 0) {
+                    pesanKosong.style.display = 'block';
+                } else {
+                    pesanKosong.style.display = 'none';
+                    items.forEach((item, index) => {
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'cute-frame opacity-0 cursor-pointer'; 
+                        
+                        wrapper.onclick = (e) => {
+                            if (e.target.tagName !== 'AUDIO' && e.target.tagName !== 'INPUT') {
+                                window.bukaMediaFullscreen(item.data, item.tipe);
+                            }
+                        };
+                        
+                        const safeUrl = convertToBlobUrl(item.data);
+
+                        if (item.tipe === 'image') {
+                            const img = document.createElement('img');
+                            img.src = safeUrl;
+                            wrapper.appendChild(img);
+                        } else if (item.tipe === 'video') {
+                            const vid = document.createElement('video');
+                            vid.src = safeUrl;
+                            wrapper.appendChild(vid);
+                        } else if (item.tipe === 'audio') {
+                            const icon = document.createElement('div');
+                            icon.className = 'audio-icon';
+                            icon.innerText = '💿';
+                            const aud = document.createElement('audio');
+                            aud.src = safeUrl;
+                            aud.controls = true;
+                            wrapper.appendChild(icon);
+                            wrapper.appendChild(aud);
+                        }
+                        
+                        grid.appendChild(wrapper);
+                        setTimeout(() => {
+                            wrapper.classList.add('opacity-100');
+                            wrapper.style.transition = 'all 0.5s ease-out';
+                        }, index * 100);
+                    });
+                }
+            }, (err) => console.error(err));
+        }
+
+        // Upload ke Firebase
+        document.getElementById('upload-media').addEventListener('change', async function(e) {
+            if (!folderAktif || !currentUser || !db) return;
+            const fileList = Array.from(e.target.files);
+            
+            showToast("Mengunggah media ke awan...");
+            
+            for (let file of fileList) {
+                let tipe = 'image';
+                if (file.type.startsWith('video/')) tipe = 'video';
+                if (file.type.startsWith('audio/')) tipe = 'audio';
+                
+                try {
+                    const base64Data = await fileToBase64(file);
+                    const mediaRef = collection(db, 'artifacts', appId, 'public', 'data', 'media');
+                    await addDoc(mediaRef, {
+                        folder: folderAktif,
+                        tipe: tipe,
+                        data: base64Data,
+                        waktu: Date.now()
+                    });
+                    showToast("Berhasil diunggah.");
+                } catch (err) {
+                    if (err.message === "FILE_TOO_BIG") {
+                        showToast(`Gagal: Ukuran ${tipe} lebih dari 700KB. Tidak muat di awan.`, true);
+                    } else {
+                        showToast("Terjadi kesalahan saat mengunggah.", true);
+                    }
+                }
+            }
+            this.value = ''; 
         });
 
-        document.getElementById('upload-input').onchange = async (e) => {
-            if(!user) return;
-            notify("Sedang mengunggah ke awan...");
-            for(let f of e.target.files) {
-                if(f.size > 800000) {
-                    notify("File terlalu besar (Maks 800KB)");
-                    continue;
-                }
-                try {
-                    const b64 = await toBase64(f);
-                    const mime = f.type.split('/')[0];
-                    await addDoc(collection(db, 'artifacts', appIdPath, 'public', 'data', 'memories'), {
-                        folder: currentFolder,
-                        data: b64,
-                        mime: mime,
-                        time: Date.now()
+        // --- UI & Animasi ---
+        window.pindahHalaman = (idHalaman) => {
+            const semuaHalaman = document.querySelectorAll('.page-view');
+            const halamanAktif = document.querySelector('.page-view.active-view');
+
+            if (halamanAktif && halamanAktif.id !== idHalaman) {
+                halamanAktif.style.opacity = '0';
+                setTimeout(() => {
+                    semuaHalaman.forEach(halaman => {
+                        halaman.classList.remove('active-view');
+                        halaman.style.opacity = '';
                     });
-                } catch (err) { console.error(err); }
+                    tampilkanTarget(idHalaman);
+                }, 400);
+            } else if (!halamanAktif) {
+                tampilkanTarget(idHalaman);
             }
-            notify("Memori berhasil diunggah!");
         };
 
-        const syncMedia = () => {
-            if(!user) return;
-            onSnapshot(collection(db, 'artifacts', appIdPath, 'public', 'data', 'memories'), (snap) => {
-                const grid = document.getElementById('media-grid');
-                grid.innerHTML = "";
-                const items = snap.docs.map(d => d.data())
-                    .filter(d => d.folder === currentFolder)
-                    .sort((a,b) => b.time - a.time);
-                
-                items.forEach(d => {
-                    const div = document.createElement('div');
-                    div.className = "cute-frame glass";
-                    if(d.mime === 'video') {
-                        div.innerHTML = `<video src="${d.data}" muted></video><div class="absolute inset-0 flex items-center justify-center text-3xl">▶️</div>`;
-                    } else if (d.mime === 'audio') {
-                        div.innerHTML = `<div class="flex items-center justify-center h-full text-5xl">🎵</div>`;
-                    } else {
-                        div.innerHTML = `<img src="${d.data}">`;
-                    }
-                    div.onclick = () => bukaModal(d.data, d.mime);
-                    grid.appendChild(div);
-                });
-            });
-        };
+        function tampilkanTarget(idHalaman) {
+            const halamanTarget = document.getElementById(idHalaman);
+            if (halamanTarget) {
+                halamanTarget.classList.add('active-view');
+                window.scrollTo({top: 0, behavior: 'smooth'}); 
+            }
+            if(idHalaman === 'halaman-beranda') jalankanAnimasiTeks();
+        }
 
-        window.bukaModal = (src, mime) => {
+        window.bukaMediaFullscreen = (url, tipe) => {
             const modal = document.getElementById('media-modal');
             const container = document.getElementById('modal-container');
-            container.innerHTML = "";
-            let el;
-            if(mime === 'video') {
-                el = document.createElement('video');
-                el.controls = true;
-                el.autoplay = true;
-            } else if(mime === 'audio') {
-                el = document.createElement('audio');
-                el.controls = true;
-                el.autoplay = true;
-            } else {
-                el = document.createElement('img');
+            container.innerHTML = ''; 
+
+            const safeUrl = convertToBlobUrl(url);
+            let elemenMedia;
+            
+            if (tipe === 'image') {
+                elemenMedia = document.createElement('img');
+                elemenMedia.src = safeUrl;
+            } else if (tipe === 'video') {
+                elemenMedia = document.createElement('video');
+                elemenMedia.src = safeUrl;
+                elemenMedia.controls = true;
+                elemenMedia.autoplay = true;
+            } else if (tipe === 'audio') {
+                elemenMedia = document.createElement('audio');
+                elemenMedia.src = safeUrl;
+                elemenMedia.controls = true;
+                elemenMedia.autoplay = true;
             }
-            el.src = src;
-            el.id = "media-modal-content";
-            container.appendChild(el);
+            elemenMedia.id = 'media-modal-content';
+            
+            container.appendChild(elemenMedia);
             modal.style.display = 'flex';
+            void modal.offsetWidth; 
+            modal.classList.add('active');
         };
 
-        window.tutupModal = (e) => {
-            if(e.target.id === "media-modal-content") return;
-            document.getElementById('media-modal').style.display = 'none';
-            document.getElementById('modal-container').innerHTML = "";
+        window.tutupFullscreen = (e) => {
+            if (e && (e.target.id === 'media-modal-content' && e.target.tagName !== 'AUDIO')) return;
+            const modal = document.getElementById('media-modal');
+            const container = document.getElementById('modal-container');
+            
+            modal.classList.remove('active');
+            setTimeout(() => {
+                modal.style.display = 'none';
+                container.innerHTML = ''; 
+            }, 300);
         };
 
-        window.uploadProfil = async (id, el) => {
-            if(!user) return;
-            const f = el.files[0];
-            if(!f || f.size > 800000) { notify("Foto terlalu besar"); return; }
-            notify("Memperbarui foto profil...");
-            const b64 = await toBase64(f);
-            await setDoc(doc(db, 'artifacts', appIdPath, 'public', 'data', 'profiles', id), { img: b64 }, { merge: true });
-        };
-
-        window.saveProfil = async (id) => {
-            if(!user) return;
-            const txt = document.getElementById(`${id}-desc`).innerText;
-            await setDoc(doc(db, 'artifacts', appIdPath, 'public', 'data', 'profiles', id), { desc: txt }, { merge: true });
-            notify("Cerita profil disimpan");
-        };
-
-        const syncProfil = () => {
-            onSnapshot(collection(db, 'artifacts', appIdPath, 'public', 'data', 'profiles'), (snap) => {
-                snap.docs.forEach(d => {
-                    const data = d.data();
-                    const imgEl = document.getElementById(`${d.id}-img`);
-                    const descEl = document.getElementById(`${d.id}-desc`);
-                    if(data.img && imgEl) imgEl.src = data.img;
-                    if(data.desc && descEl) descEl.innerText = data.desc;
-                });
+        function jalankanAnimasiTeks() {
+            const revealElements = document.querySelectorAll('.reveal-text');
+            revealElements.forEach(el => {
+                el.classList.remove('active');
+                const match = el.className.match(/delay-\[(\d+)ms\]/);
+                const delay = match ? parseInt(match[1]) : 0;
+                setTimeout(() => { el.classList.add('active'); }, delay);
             });
-        };
+        }
 
-        document.addEventListener('mousemove', (e) => {
-            const x = (e.clientX / window.innerWidth - 0.5) * 40;
-            const y = (e.clientY / window.innerHeight - 0.5) * 40;
-            const bg = document.getElementById('bg-img');
-            if(bg) bg.style.transform = `translate(${-x}px, ${-y}px) scale(1.15)`;
+        // Jalankan Script Utama Saat Tampilan Dimuat
+        document.addEventListener("DOMContentLoaded", () => {
+            // Jalankan Cloud Init
+            initFirebase();
+
+            const loader = document.getElementById('loader-wrapper');
+            const mainContent = document.getElementById('main-content');
+            const bgImg = document.getElementById('bg-img');
+
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                setTimeout(() => {
+                    loader.style.visibility = 'hidden';
+                    loader.style.display = 'none';
+                    mainContent.classList.remove('opacity-0');
+                    mainContent.classList.add('opacity-100');
+                    bgImg.style.transform = 'scale(1)';
+                    jalankanAnimasiTeks();
+                }, 1500); 
+            }, 3000); 
+
+            document.addEventListener('mousemove', (e) => {
+                const x = (e.clientX / window.innerWidth - 0.5) * 30;
+                const y = (e.clientY / window.innerHeight - 0.5) * 30;
+                bgImg.style.transform = `scale(1.08) translate(${-x}px, ${-y}px)`;
+            });
+
+            // Animasi Latar
+            setInterval(() => {
+                const star = document.createElement('div');
+                star.classList.add('falling-star');
+                star.style.left = Math.random() * window.innerWidth + 'px';
+                const duration = Math.random() * 3 + 4; 
+                star.style.animationDuration = duration + 's';
+                document.body.appendChild(star);
+                setTimeout(() => { star.remove(); }, duration * 1000);
+            }, 800);
+
+            setInterval(() => {
+                const meteor = document.createElement('div');
+                meteor.classList.add('meteor');
+                meteor.style.left = (Math.random() * window.innerWidth * 1.5) + 'px';
+                meteor.style.top = (Math.random() * -150 - 50) + 'px';
+                const duration = Math.random() * 1.5 + 1.2;
+                meteor.style.animationDuration = duration + 's';
+                document.body.appendChild(meteor);
+                setTimeout(() => { meteor.remove(); }, duration * 1000);
+            }, 1500);
+
+            // Partikel Canvas
+            const canvas = document.getElementById('particle-canvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            let mouse = { x: null, y: null };
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resizeCanvas);
+            resizeCanvas();
+
+            window.addEventListener('mousemove', (e) => { mouse.x = e.x; mouse.y = e.y; });
+            window.addEventListener('mouseout', () => { mouse.x = null; mouse.y = null; });
+
+            class Particle {
+                constructor() {
+                    this.x = Math.random() * canvas.width;
+                    this.y = Math.random() * canvas.height;
+                    this.size = Math.random() * 3 + 1;
+                    this.speedX = Math.random() * 1 - 0.5;
+                    this.speedY = Math.random() * -1 - 0.5;
+                    this.baseOpacity = Math.random() * 0.5 + 0.1;
+                    const colors = ['#d8b4fe', '#a855f7', '#ec4899', '#93c5fd'];
+                    this.color = colors[Math.floor(Math.random() * colors.length)];
+                }
+
+                update() {
+                    this.x += this.speedX; this.y += this.speedY;
+                    if (this.y < 0 - this.size) { this.y = canvas.height + this.size; this.x = Math.random() * canvas.width; }
+                    if (this.x < 0 - this.size) this.x = canvas.width + this.size;
+                    if (this.x > canvas.width + this.size) this.x = 0 - this.size;
+                    if (mouse.x != null && mouse.y != null) {
+                        let dx = mouse.x - this.x; let dy = mouse.y - this.y;
+                        let distance = Math.sqrt(dx * dx + dy * dy);
+                        if (distance < 100) { this.x -= dx * 0.02; this.y -= dy * 0.02; }
+                    }
+                }
+
+                draw() {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                    ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+                    ctx.fillStyle = this.color; ctx.globalAlpha = this.baseOpacity;
+                    ctx.fill(); ctx.globalAlpha = 1; ctx.shadowBlur = 0; 
+                }
+            }
+
+            function animateParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (particles.length === 0) {
+                    for (let i = 0; i < (canvas.width * canvas.height) / 9000; i++) particles.push(new Particle());
+                }
+                for (let i = 0; i < particles.length; i++) {
+                    particles[i].update(); particles[i].draw();
+                }
+                requestAnimationFrame(animateParticles);
+            }
+            animateParticles();
         });
 
-        setInterval(() => {
-            const m = document.createElement('div');
-            m.className = 'meteor';
-            m.style.left = (Math.random() * 150 - 50) + 'vw';
-            m.style.top = '-15vh';
-            m.style.transform = 'rotate(45deg)';
-            document.body.appendChild(m);
-            m.animate([
-                { top: '-15vh', left: m.style.left },
-                { top: '120vh', left: 'calc(' + m.style.left + ' - 80vw)' }
-            ], { duration: 2200, easing: 'linear' });
-            setTimeout(() => m.remove(), 2200);
-        }, 4500);
-
-        window.onload = init;
     </script>
 </body>
+    
 </html>
